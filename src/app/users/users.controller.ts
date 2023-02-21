@@ -1,4 +1,5 @@
-import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 
 @Controller('api/v1/users')
@@ -9,17 +10,17 @@ export class UsersController {
 
   @Get()
   async index() {
-    return null;
+    return this.usersService.findAll();
   }
 
   @Post()
-  async store() {
-    return null;
+  async store(@Body() body: CreateUserDto) {
+    return this.usersService.store(body);
   }
 
   @Get(':id')
-  async show() {
-    return null;
+  async show(@Param('id', new ParseUUIDPipe()) id :string) {
+    return this.usersService.findOneOrFail({ id });
   }
 
   @Put(':id')

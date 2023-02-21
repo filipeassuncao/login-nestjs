@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm'
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersEntity } from './users.entity';
 
 @Injectable()
@@ -8,7 +10,7 @@ export class UsersService {
   constructor(
     @InjectRepository(UsersEntity)
     private readonly usersRepository: Repository<UsersEntity>
-  ) {}
+  ) { }
 
   async findAll() {
     return await this.usersRepository.find({
@@ -16,15 +18,27 @@ export class UsersService {
     })
   }
 
-  async findOneOrFail() {
-    return await this.usersRepository.findOneOrFail()
+  async findOneOrFail(options?: Object) {
+    try {
+      return await this.usersRepository.findOneOrFail(options);
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 
-  async update(id: string, user) {
+  async store(data: CreateUserDto) {
+    const user = await this.usersRepository.create(data);
+    return await this.usersRepository.save(user);
+  }
 
+  async update(id: string, data: UpdateUserDto) {
+    const user = await this.findOneOrFail({ id });
+    this.usersRepository.merge(user, data);
+    return await this.usersRepository.save(user);
   }
 
   async destroy(id: string) {
-
+    await this.findOneOrFail({ id });
+    this.usersRepository.softDelete({ id });
   }
 }
